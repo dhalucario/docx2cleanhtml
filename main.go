@@ -1,29 +1,43 @@
 package main
 
 import (
-	"os"
+	"fmt"
 	"log"
-	//"strings"
+	"os"
 
-	"leong/docx2cleanhtml/settingsStorage"
+	"leong/docx2clearhtml/settingsStorage"
 
-
-	//_ "baliance.com/gooxml/document"
+	"baliance.com/gooxml/document"
 )
 
 func main() {
 
 	var pgs programSettings.ProgramSettings = programSettings.MakeProgramSettings(nil)
-	var log log.Logger = make(log.Logger)
+	args := os.Args[1:len(os.Args)]
 
 	pgs.RegisterCommandLineSetting("verbose", programSettings.CommandLineArgument{
-		"v",
-		"verbose",
-		false,
-		false,
-		0,
+		Short:            "v",
+		Long:             "verbose",
+		DefaultValue:     false,
+		MaxArgumentParam: 0,
 	})
-	pgs.ReadCommandLineSettings(&os.Args)
+	wg := pgs.ReadCommandLineSettings(args)
+	(*wg).Wait()
 
+	logVerbose("Config Loaded", &pgs)
 
+	doc, err := document.Open("test.docx")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Print(doc.Paragraphs())
+
+}
+
+func logVerbose(output string, pgs *programSettings.ProgramSettings) {
+	if (*pgs).Get("verbose").(bool) {
+		fmt.Println(output)
+	}
 }
