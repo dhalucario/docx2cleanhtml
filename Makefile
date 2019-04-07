@@ -5,11 +5,11 @@ GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 
 ./bin/docx2clearhtml.exe: main.go ./settingsStorage/programSettings.go
-	$(GOBUILD) -o ./bin/docx2clearhtml.exe
+	$(GOBUILD) -o ./bin/docx2clearhtml
 
 clean:
 	$(GOCLEAN)
-	rm ./bin/docx2clearhtml.exe
+	rm ./bin/docx2clearhtml
 
 test:
 	$(GOTEST)

@@ -17,14 +17,15 @@ type CommandLineArgument struct {
 	DefaultValue      interface{}
 	MultipleArguments bool
 	MaxArgumentParam  int
+	CommandHandler    func(arguments []string, ps *ProgramSettings)
 }
 
 // Factory Functions
-func MakeProgramSettings(defaultValues map[string]interface{}) ProgramSettings {
+func New(userValues map[string]interface{}) ProgramSettings {
 	var valueStorage map[string]interface{}
 
-	if defaultValues != nil {
-		valueStorage = defaultValues
+	if userValues != nil {
+		valueStorage = userValues
 	} else {
 		valueStorage = make(map[string]interface{})
 	}
@@ -42,17 +43,17 @@ func (ps *ProgramSettings) Get(key string) interface{} {
 	return ps.storage[key]
 }
 
-func (pa *ProgramSettings) All() map[string]interface{} {
-	return pa.storage
+func (ps *ProgramSettings) All() map[string]interface{} {
+	return ps.storage
 }
 
 func (ps *ProgramSettings) Reset(key string) {
 	ps.storage[key] = ps.commandLineArguments[key].DefaultValue
 }
 
-func (ps *ProgramSettings) RegisterCommandLineSetting(key string, cla CommandLineArgument) {
-	ps.commandLineArguments[key] = cla
-	ps.storage[key] = cla.DefaultValue
+func (ps *ProgramSettings) RegisterCommandLineSetting(cla CommandLineArgument) {
+	ps.commandLineArguments[cla.Long] = cla
+	ps.storage[cla.Long] = cla.DefaultValue
 }
 
 func (ps *ProgramSettings) ReadCommandLineSettings(pSettingsArray []string) *sync.WaitGroup {
@@ -73,12 +74,27 @@ func (ps *ProgramSettings) ReadSetting(settings []string, settingOffset int, wg 
 	err := ""
 	retVal := false
 
-	if strings.HasPrefix((settings)[settingOffset], "-") {
-		for k, v := range (*ps).commandLineArguments {
+	if strings.HasPrefix(settings[settingOffset], "-") {
+		for _, v := range (*ps).commandLineArguments {
 			if "-"+v.Short == settings[settingOffset] || "--"+v.Long == settings[settingOffset] {
-				// TODO: Add function to find proper value
-				(*ps).storage[k] = true
-				retVal = true
+				if v.MultipleArguments {
+					countOffset := settingOffset + 1
+					arguments := make([]string, 0)
+
+					for countOffset < len(settings) {
+						if strings.HasPrefix(settings[countOffset], "-") {
+							countOffset = len(settings)
+						} else {
+							arguments = append(arguments, settings[countOffset])
+						}
+						countOffset++
+					}
+
+					v.CommandHandler(arguments, ps)
+
+				} else {
+					v.CommandHandler(make([]string, 0), ps)
+				}
 			} else {
 				err = "Command line argument not found"
 			}
