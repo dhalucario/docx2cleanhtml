@@ -1,24 +1,23 @@
 package main
 
 import (
+	"baliance.com/gooxml/document"
 	"fmt"
+	"leong/docx2cleanhtml/htmlAliasFormatter"
+	programSettings "leong/docx2cleanhtml/settingsStorage"
 	"log"
 	"os"
-
-	"leong/docx2clearhtml/settingsStorage"
-	"leong/docx2clearhtml/htmlAliasFormatter"
-
-	"baliance.com/gooxml/document"
+	"strings"
 )
 
 func main() {
 
 	htmlElementAliases := map[string]string {
-		"heading 1": "<h1>%s</h1>",
-		"heading 2": "<h2>%s</h2>",
-		"heading 3": "<h3>%s</h3>",
-		"heading 4": "<h4>%s</h4>",
-		"heading 5": "<h5>%s</h5>",
+		"title": "<h1>%s</h1>",
+		"heading 1": "<h2>%s</h2>",
+		"heading 2": "<h3>%s</h3>",
+		"heading 3": "<h4>%s</h4>",
+		"heading 4": "<h5>%s</h5>",
 	}
 	haf := htmlAliasFormatter.New(htmlElementAliases)
 
@@ -27,7 +26,7 @@ func main() {
 		Short:            "v",
 		Long:             "verbose",
 		DefaultValue:     false,
-		MultipleArguments: true,
+		MultipleArguments: false,
 		MaxArgumentParam: 0,
 		CommandHandler: func(commandLineArgs []string, ps *programSettings.ProgramSettings) {
 			ps.Set("verbose", true)
@@ -39,53 +38,40 @@ func main() {
 		Long:             "in",
 		DefaultValue:     "",
 		MultipleArguments: true,
-		MaxArgumentParam: 0,
-		CommandHandler: func(commandLineArgs []string, ps *programSettings.ProgramSettings) {
-			ps.Set("verbose", true)
-		},
-	})
-
-	pgs.RegisterCommandLineSetting(programSettings.CommandLineArgument{
-		Short:            "o",
-		Long:             "out",
-		DefaultValue:     "",
-		MultipleArguments: true,
 		MaxArgumentParam: 1,
 		CommandHandler: func(commandLineArgs []string, ps *programSettings.ProgramSettings) {
-			ps.Set("verbose", true)
+			ps.Set("in", commandLineArgs[0])
 		},
 	})
 
 	args := os.Args[1:len(os.Args)]
-	wg := pgs.ReadCommandLineSettings(args)
-	(*wg).Wait()
+	(pgs.ReadCommandLineSettings(args)).Wait()
 
-	logVerbose("Loading doc file...", &pgs)
-	doc, err := document.Open("test.docx")
+	rawName := pgs.Get("in")
+	name := fmt.Sprintf("%v", rawName)
 
+	doc, err := document.Open(name)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	logVerbose("Loaded doc", &pgs)
-
 	styleIdNames := make(map[string]string)
 	for _, s := range doc.Styles.Styles() {
+		pgs.VerbosePrintf("%s (ID: %s)\n", s.Name(), s.StyleID())
 		styleIdNames[s.StyleID()] = s.Name()
 	}
 
 	para := doc.Paragraphs()
+	paraBuffer := ""
 	for _, p := range para {
 		style := p.Style()
+		paraBuffer = ""
 		for _, r := range p.Runs() {
-			fmt.Println(haf.ConvertToHtml(r.Text(), styleIdNames[style]))
+			paraBuffer = paraBuffer + r.Text()
 		}
-	}
 
-}
-
-func logVerbose(output string, pgs *programSettings.ProgramSettings) {
-	if (*pgs).Get("verbose").(bool) {
-		fmt.Println(output)
+		fmt.Println(haf.ConvertToHtml(paraBuffer, strings.ToLower(styleIdNames[style])))
 	}
 }
+
+

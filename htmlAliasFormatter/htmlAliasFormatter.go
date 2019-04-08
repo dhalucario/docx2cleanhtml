@@ -2,6 +2,7 @@ package htmlAliasFormatter
 
 import (
 	"fmt"
+	"strings"
 )
 
 type htmlElementReplacer struct {
@@ -31,9 +32,14 @@ func (hep *htmlElementReplacer) DelAlias(alias string) {
 
 func (hep *htmlElementReplacer) ConvertToHtml(content string, alias string) string {
 	htmlAlias, ok := hep.htmlElementAliases[alias]
-	if ok {
-		return fmt.Sprintf(htmlAlias, content)
+	if len(strings.Replace(content, " ", "", -1)) > 0 {
+		if ok {
+			return fmt.Sprintf(htmlAlias, content)
+		} else {
+			return fmt.Sprintf("<p>%s</p>", content)
+		}
 	} else {
-		return fmt.Sprintf("<p>%s</p>", content)
+		return "<br />"
 	}
+
 }

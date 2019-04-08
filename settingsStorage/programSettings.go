@@ -1,6 +1,7 @@
 package programSettings
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 )
@@ -66,10 +67,28 @@ func (ps *ProgramSettings) ReadCommandLineSettings(pSettingsArray []string) *syn
 	return &wg
 }
 
+func (ps *ProgramSettings) VerbosePrintln(output ...interface{}) {
+	if (*ps).Get("verbose").(bool) {
+		fmt.Println(output)
+	}
+}
+
+func (ps *ProgramSettings) VerbosePrint(output ...interface{}) {
+	if (*ps).Get("verbose").(bool) {
+		fmt.Print(output)
+	}
+}
+
+func (ps *ProgramSettings) VerbosePrintf(format string, a...interface{}) {
+	if (*ps).Get("verbose").(bool) {
+		fmt.Printf(format, a...)
+	}
+}
+
 // "Private" Worker Functions
 func (ps *ProgramSettings) ReadSetting(settings []string, settingOffset int, wg *sync.WaitGroup) (bool, string) {
-	(*wg).Add(1)
-	defer (*wg).Done()
+	wg.Add(1)
+	defer wg.Done()
 
 	err := ""
 	retVal := false
