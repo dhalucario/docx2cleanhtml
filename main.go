@@ -3,8 +3,8 @@ package main
 import (
 	"baliance.com/gooxml/document"
 	"fmt"
-	"leong/docx2cleanhtml/htmlAliasFormatter"
-	programSettings "leong/docx2cleanhtml/settingsStorage"
+	"leong/docx2clearhtml/htmlAliasFormatter"
+	programSettings "leong/docx2clearhtml/settingsStorage"
 	"log"
 	"os"
 	"strings"
@@ -45,12 +45,9 @@ func main() {
 	})
 
 	args := os.Args[1:len(os.Args)]
-	(pgs.ReadCommandLineSettings(args)).Wait()
+	pgs.ReadCommandLineSettings(args)
 
-	rawName := pgs.Get("in")
-	name := fmt.Sprintf("%v", rawName)
-
-	doc, err := document.Open(name)
+	doc, err := document.Open(pgs.Get("in").(string))
 	if err != nil {
 		log.Fatal(err)
 	}

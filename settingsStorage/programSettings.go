@@ -57,14 +57,14 @@ func (ps *ProgramSettings) RegisterCommandLineSetting(cla CommandLineArgument) {
 	ps.storage[cla.Long] = cla.DefaultValue
 }
 
-func (ps *ProgramSettings) ReadCommandLineSettings(pSettingsArray []string) *sync.WaitGroup {
+func (ps *ProgramSettings) ReadCommandLineSettings(pSettingsArray []string) {
 	var wg sync.WaitGroup
+	wg.Add(len(pSettingsArray))
 	// TODO: Expand this at some point to search for command line arguments that need n values to work.
 	for argCounter := 0; argCounter < len(pSettingsArray); argCounter++ {
 		go ps.ReadSetting(pSettingsArray, argCounter, &wg)
 	}
-
-	return &wg
+	wg.Wait()
 }
 
 func (ps *ProgramSettings) VerbosePrintln(output ...interface{}) {
@@ -86,12 +86,8 @@ func (ps *ProgramSettings) VerbosePrintf(format string, a...interface{}) {
 }
 
 // "Private" Worker Functions
-func (ps *ProgramSettings) ReadSetting(settings []string, settingOffset int, wg *sync.WaitGroup) (bool, string) {
-	wg.Add(1)
+func (ps *ProgramSettings) ReadSetting(settings []string, settingOffset int, wg *sync.WaitGroup) () {
 	defer wg.Done()
-
-	err := ""
-	retVal := false
 
 	if strings.HasPrefix(settings[settingOffset], "-") {
 		for _, v := range (*ps).commandLineArguments {
@@ -114,11 +110,8 @@ func (ps *ProgramSettings) ReadSetting(settings []string, settingOffset int, wg 
 				} else {
 					v.CommandHandler(make([]string, 0), ps)
 				}
-			} else {
-				err = "Command line argument not found"
 			}
 		}
 	}
 
-	return retVal, err
 }
