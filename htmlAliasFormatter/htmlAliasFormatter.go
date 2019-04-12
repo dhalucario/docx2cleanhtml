@@ -5,32 +5,32 @@ import (
 	"strings"
 )
 
-type htmlElementReplacer struct {
+type HTMLElementReplacer struct {
 	htmlElementAliases map[string]string
 }
 
 // Factory Functions
 
-func New(userHtmlElementAliases map[string]string) htmlElementReplacer {
+func New(userHtmlElementAliases map[string]string) HTMLElementReplacer {
 	var htmlElementAliases map[string]string
 	if userHtmlElementAliases != nil {
 		htmlElementAliases = userHtmlElementAliases
 	} else {
 		htmlElementAliases = make(map[string]string)
 	}
-	return htmlElementReplacer{ htmlElementAliases }
+	return HTMLElementReplacer{ htmlElementAliases }
 }
 
 // Worker Functions
-func (hep *htmlElementReplacer) AddAlias(alias string, htmlTag string) {
+func (hep *HTMLElementReplacer) AddAlias(alias string, htmlTag string) {
 	hep.htmlElementAliases[alias] = htmlTag
 }
 
-func (hep *htmlElementReplacer) DelAlias(alias string) {
+func (hep *HTMLElementReplacer) DelAlias(alias string) {
 	delete(hep.htmlElementAliases, alias)
 }
 
-func (hep *htmlElementReplacer) ConvertToHtml(content string, alias string) string {
+func (hep *HTMLElementReplacer) ConvertToHtml(content string, alias string) string {
 	htmlAlias, ok := hep.htmlElementAliases[alias]
 	if len(strings.Replace(content, " ", "", -1)) > 0 {
 		if ok {

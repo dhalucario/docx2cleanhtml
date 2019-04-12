@@ -60,7 +60,6 @@ func (ps *ProgramSettings) RegisterCommandLineSetting(cla CommandLineArgument) {
 func (ps *ProgramSettings) ReadCommandLineSettings(pSettingsArray []string) {
 	var wg sync.WaitGroup
 	wg.Add(len(pSettingsArray))
-	// TODO: Expand this at some point to search for command line arguments that need n values to work.
 	for argCounter := 0; argCounter < len(pSettingsArray); argCounter++ {
 		go ps.ReadSetting(pSettingsArray, argCounter, &wg)
 	}
