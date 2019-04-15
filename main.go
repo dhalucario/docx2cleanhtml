@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"leong/docx2cleanhtml/settingsStorage"
 	"leong/docx2cleanhtml/simpleDocxParser"
+	"log"
 	"os"
 )
 
@@ -45,11 +45,10 @@ func main() {
 	pgs.ReadCommandLineSettings(args)
 
 	doc, err := simpleDocxParser.New(pgs.Get("in").(string))
-
 	if err != nil {
-		fmt.Print(err)
+		log.Fatal(err)
 	}
-
+	doc.ReadRelations()
 	doc.GetHTML()
 
 }

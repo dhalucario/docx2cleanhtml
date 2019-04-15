@@ -2,11 +2,12 @@ package simpleDocxParser
 
 import (
 	"archive/zip"
-	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/xml"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -17,6 +18,8 @@ import (
 type Document struct {
 	originalPath string
 	tempPath     string
+
+	parsedDocument xmlDocument
 }
 
 func New(file string) (doc Document, err error) {
@@ -84,15 +87,22 @@ func isAcceptedFile(filename string) bool {
 	return false
 }
 
-func (doc *Document) readRelations(relativePath string) {
-	file, fileErr := os.Open(relativePath)
-	fileBuffer := bytes.NewBuffer(nil)
-	if fileErr == nil {
-		_, copyErr := io.Copy(file, fileBuffer)
-		if copyErr == nil {
+func (doc *Document) ReadRelations() {
+	doc.readDocuments()
+	fmt.Printf("%v", doc.parsedDocument)
+}
 
+func (doc *Document) readDocuments() {
+	file, fileErr := os.Open(path.Join(doc.tempPath, "document.xml"))
+	byteContent, readAllErr := ioutil.ReadAll(file)
+	if fileErr == nil {
+		if readAllErr == nil {
+			parseErr := xml.Unmarshal(byteContent, &doc.parsedDocument)
+			if parseErr != nil {
+				log.Fatal(parseErr)
+			}
 		} else {
-			log.Fatal(copyErr)
+			log.Fatal(readAllErr)
 		}
 	} else {
 		log.Fatal(fileErr.Error())

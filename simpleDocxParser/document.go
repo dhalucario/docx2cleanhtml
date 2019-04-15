@@ -1,5 +1,6 @@
 package simpleDocxParser
 
+
 type xmlDocument struct {
 	body xmlBody `xml:"w:body"`
 }
