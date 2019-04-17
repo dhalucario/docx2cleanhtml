@@ -20,9 +20,20 @@ type Document struct {
 	tempPath     string
 
 	parsedDocument xmlDocument
+	styles map[string]string
+}
+
+var htmlElementAliases = map[string]string {
+		"title": "<h1>%s</h1>",
+		"heading 1": "<h2>%s</h2>",
+		"heading 2": "<h3>%s</h3>",
+		"heading 3": "<h4>%s</h4>",
+		"heading 4": "<h5>%s</h5>",
 }
 
 func New(file string) (doc Document, err error) {
+	doc.styles = make(map[string]string)
+
 	md5hasher := md5.New()
 	md5hasher.Write([]byte(strconv.FormatInt(time.Now().Unix(), 10)))
 	md5hasher.Write([]byte(file))
@@ -89,16 +100,26 @@ func isAcceptedFile(filename string) bool {
 
 func (doc *Document) ReadRelations() {
 	doc.readDocuments()
-	fmt.Printf("%v", doc.parsedDocument)
+	doc.readStyles()
+	doc.close()
 }
 
 func (doc *Document) readStyles() {
-	// TODO: Fix this up. Basicly same as readDocuments.
 	file, fileErr := os.Open(path.Join(doc.tempPath, "styles.xml"))
+	var parsedStyles xmlStyles
 	if fileErr == nil {
 		readAllContent, readAllErr := ioutil.ReadAll(file)
 		if readAllErr == nil {
-			parseErr := xml.Unmarshal()
+			parseErr := xml.Unmarshal(readAllContent, &parsedStyles)
+			if parseErr != nil {
+				log.Fatal(parseErr)
+			}
+
+			for _, style := range parsedStyles.Xstyles {
+				if style.XstyleId != "" {
+					doc.styles[style.XstyleId] = style.XstyleId
+				}
+			}
 		}
 	}
 }
@@ -124,8 +145,17 @@ func (doc *Document) readParagraphs(relativePath string) {
 
 }
 
-func (doc *Document) Close() (err error) {
+func (doc *Document) close() (err error) {
 	return os.RemoveAll(doc.tempPath)
 }
 
-func (doc *Document) GetHTML() {}
+/*func (doc *Document) GetHTML() {
+
+	htmlOut := ""
+
+	for _, pg := range doc.parsedDocument.Xbody.Xparagraphs {
+		for _, subPg := range pg.Xr {
+			htmlOut = htmlOut + fmt.Sprintf("%v", subPg.Xt)
+		}
+	}
+}*/

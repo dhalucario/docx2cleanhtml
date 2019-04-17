@@ -9,15 +9,6 @@ import (
 
 func main() {
 
-	/*htmlElementAliases := map[string]string {
-		"title": "<h1>%s</h1>",
-		"heading 1": "<h2>%s</h2>",
-		"heading 2": "<h3>%s</h3>",
-		"heading 3": "<h4>%s</h4>",
-		"heading 4": "<h5>%s</h5>",
-	}
-	haf := htmlAliasFormatter.New(htmlElementAliases)*/
-
 	pgs := programSettings.New(nil)
 	pgs.RegisterCommandLineSetting(programSettings.CommandLineArgument{
 		Short:            "v",
@@ -49,6 +40,6 @@ func main() {
 		log.Fatal(err)
 	}
 	doc.ReadRelations()
-	doc.GetHTML()
+	//doc.GetHTML()
 
 }

@@ -1,6 +1,9 @@
 package simpleDocxParser
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"fmt"
+)
 
 type xmlDocument struct {
 	XMLName xml.Name `xml:"document"`
@@ -16,10 +19,12 @@ type xmlParagraph struct {
 	XMLName xml.Name `xml:"p"`
 	XpPr xmlpPr `xml:"pPr"`
 	Xr []xmlr `xml:"r"`
+	Xhyper xmlHyperlink `xml:"hyperlink"`
 }
 
 type xmlHyperlink struct {
-	Xr xmlr `xml:""`
+	XMLName xml.Name `xml:"hyperlink"`
+	Xr []xmlr `xml:"r"`
 }
 
 type xmlpPr struct {
@@ -33,8 +38,8 @@ type xmlpStyle struct {
 }
 
 type xmlspacing struct {
-	Xbefore int `xml:"before"`
-	Xafter int `xml:"after"`
+	Xbefore int `xml:"before,attr"`
+	Xafter int `xml:"after,attr"`
 }
 
 type xmlr struct {
@@ -47,5 +52,19 @@ type xmlrPr struct {
 }
 
 type xmlrStyle struct {
-	Xval string `xml:"val"`
+	Xval string `xml:"val,attr"`
+}
+
+// Custom Marshal to keep order.
+
+func (hl *xmlHyperlink/*p *xmlParagraph*/) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	
+	var s string
+	if err := d.DecodeElement(&s, &start); err != nil {
+		return err
+	}
+	fmt.Println(start)
+
+	return nil
+
 }
