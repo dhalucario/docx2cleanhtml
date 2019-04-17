@@ -1,47 +1,51 @@
 package simpleDocxParser
 
+import "encoding/xml"
 
 type xmlDocument struct {
-	body xmlBody `xml:"w:body"`
+	XMLName xml.Name `xml:"document"`
+	Xbody xmlBody `xml:"body"`
 }
 
 type xmlBody struct {
-	paragraph []xmlParagraph `xml:"w:p"`
+	XMLName xml.Name `xml:"body"`
+	Xparagraphs []xmlParagraph `xml:"p"`
 }
 
 type xmlParagraph struct {
-	pPr xmlpPr `xml:"w:pPr"`
-	r xmlr `xml:"r"`
+	XMLName xml.Name `xml:"p"`
+	XpPr xmlpPr `xml:"pPr"`
+	Xr []xmlr `xml:"r"`
 }
 
 type xmlHyperlink struct {
-	r xmlr `xml:""`
+	Xr xmlr `xml:""`
 }
 
 type xmlpPr struct {
-	pStyle xmlpStyle `xml:"w:pStyle"`
-	spacing xmlspacing `xml:"w:spacing"`
-	rPr xmlrPr `xml:"w:rPr"`
+	XpStyle xmlpStyle `xml:"pStyle"`
+	Xspacing xmlspacing `xml:"spacing"`
+	XrPr xmlrPr `xml:"rPr"`
 }
 
 type xmlpStyle struct {
-	val string `xml:"val"`
+	Xval string `xml:"val"`
 }
 
 type xmlspacing struct {
-	before int `xml:"w:before"`
-	after int `xml:"w:after"`
+	Xbefore int `xml:"before"`
+	Xafter int `xml:"after"`
 }
 
 type xmlr struct {
-	rPr xmlrPr `xml:"w:rPr"`
-	t string `xml:"w:t"`
+	XrPr xmlrPr `xml:"rPr"`
+	Xt string `xml:"t"`
 }
 
 type xmlrPr struct {
-	rStyle xmlrStyle `xml:"rStyle"`
+	XrStyle xmlrStyle `xml:"rStyle"`
 }
 
 type xmlrStyle struct {
-	val string `xml:"val"`
+	Xval string `xml:"val"`
 }

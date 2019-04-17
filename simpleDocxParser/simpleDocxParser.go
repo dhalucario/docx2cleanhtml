@@ -92,10 +92,21 @@ func (doc *Document) ReadRelations() {
 	fmt.Printf("%v", doc.parsedDocument)
 }
 
+func (doc *Document) readStyles() {
+	// TODO: Fix this up. Basicly same as readDocuments.
+	file, fileErr := os.Open(path.Join(doc.tempPath, "styles.xml"))
+	if fileErr == nil {
+		readAllContent, readAllErr := ioutil.ReadAll(file)
+		if readAllErr == nil {
+			parseErr := xml.Unmarshal()
+		}
+	}
+}
+
 func (doc *Document) readDocuments() {
 	file, fileErr := os.Open(path.Join(doc.tempPath, "document.xml"))
-	byteContent, readAllErr := ioutil.ReadAll(file)
 	if fileErr == nil {
+		byteContent, readAllErr := ioutil.ReadAll(file)
 		if readAllErr == nil {
 			parseErr := xml.Unmarshal(byteContent, &doc.parsedDocument)
 			if parseErr != nil {
