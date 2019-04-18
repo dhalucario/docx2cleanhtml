@@ -11,22 +11,22 @@ func main() {
 
 	pgs := programSettings.New(nil)
 	pgs.RegisterCommandLineSetting(programSettings.CommandLineArgument{
-		Short:            "v",
-		Long:             "verbose",
-		DefaultValue:     false,
+		Short:             "v",
+		Long:              "verbose",
+		DefaultValue:      false,
 		MultipleArguments: false,
-		MaxArgumentParam: 0,
+		MaxArgumentParam:  0,
 		CommandHandler: func(commandLineArgs []string, ps *programSettings.ProgramSettings) {
 			ps.Set("verbose", true)
 		},
 	})
 
 	pgs.RegisterCommandLineSetting(programSettings.CommandLineArgument{
-		Short:            "i",
-		Long:             "in",
-		DefaultValue:     "",
+		Short:             "i",
+		Long:              "in",
+		DefaultValue:      "",
 		MultipleArguments: true,
-		MaxArgumentParam: 1,
+		MaxArgumentParam:  1,
 		CommandHandler: func(commandLineArgs []string, ps *programSettings.ProgramSettings) {
 			ps.Set("in", commandLineArgs[0])
 		},
@@ -40,6 +40,6 @@ func main() {
 		log.Fatal(err)
 	}
 	doc.ReadRelations()
-	//doc.GetHTML()
+	doc.PrintHTML()
 
 }

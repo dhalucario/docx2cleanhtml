@@ -78,14 +78,14 @@ func (ps *ProgramSettings) VerbosePrint(output ...interface{}) {
 	}
 }
 
-func (ps *ProgramSettings) VerbosePrintf(format string, a...interface{}) {
+func (ps *ProgramSettings) VerbosePrintf(format string, a ...interface{}) {
 	if (*ps).Get("verbose").(bool) {
 		fmt.Printf(format, a...)
 	}
 }
 
 // "Private" Worker Functions
-func (ps *ProgramSettings) ReadSetting(settings []string, settingOffset int, wg *sync.WaitGroup) () {
+func (ps *ProgramSettings) ReadSetting(settings []string, settingOffset int, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	if strings.HasPrefix(settings[settingOffset], "-") {

@@ -20,19 +20,21 @@ type Document struct {
 	tempPath     string
 
 	parsedDocument xmlDocument
-	styles map[string]string
+	linkRelations  map[string]string
+	styles         map[string]string
 }
 
-var htmlElementAliases = map[string]string {
-		"title": "<h1>%s</h1>",
-		"heading 1": "<h2>%s</h2>",
-		"heading 2": "<h3>%s</h3>",
-		"heading 3": "<h4>%s</h4>",
-		"heading 4": "<h5>%s</h5>",
+var htmlElementAliases = map[string]string{
+	"Title":     "<h1>%s</h1>",
+	"Heading 1": "<h2>%s</h2>",
+	"Heading 2": "<h3>%s</h3>",
+	"Heading 3": "<h4>%s</h4>",
+	"Heading 4": "<h5>%s</h5>",
 }
 
 func New(file string) (doc Document, err error) {
 	doc.styles = make(map[string]string)
+	doc.linkRelations = make(map[string]string)
 
 	md5hasher := md5.New()
 	md5hasher.Write([]byte(strconv.FormatInt(time.Now().Unix(), 10)))
@@ -47,7 +49,6 @@ func New(file string) (doc Document, err error) {
 	if zipErr == nil {
 		if folderErr == nil {
 			for _, file := range zipReader.File {
-				fmt.Println(file.Name)
 				if isAcceptedFile(file.Name) {
 					ofHandle, ofErr := os.OpenFile(path.Join(doc.tempPath, path.Base(file.Name)), os.O_WRONLY|os.O_CREATE, 0750)
 					fdHandle, fdErr := file.Open()
@@ -101,7 +102,8 @@ func isAcceptedFile(filename string) bool {
 func (doc *Document) ReadRelations() {
 	doc.readDocuments()
 	doc.readStyles()
-	doc.close()
+	doc.getLinkRelations()
+	//doc.close()
 }
 
 func (doc *Document) readStyles() {
@@ -117,10 +119,32 @@ func (doc *Document) readStyles() {
 
 			for _, style := range parsedStyles.Xstyles {
 				if style.XstyleId != "" {
-					doc.styles[style.XstyleId] = style.XstyleId
+					doc.styles[style.XstyleId] = style.Xname.Xval
 				}
 			}
 		}
+	}
+}
+
+func (doc *Document) getLinkRelations() {
+	file, fileErr := os.Open(path.Join(doc.tempPath, "document.xml.rels"))
+	var relationships xmlRelationships
+	if fileErr == nil {
+		byteContent, readAllErr := ioutil.ReadAll(file)
+		if readAllErr == nil {
+			parseErr := xml.Unmarshal(byteContent, &relationships)
+			if parseErr != nil {
+				log.Fatal(parseErr)
+			}
+
+			for _, rl := range relationships.Xrelationships {
+				doc.linkRelations[rl.Xid] = rl.Xtarget
+			}
+		} else {
+			log.Fatal(readAllErr)
+		}
+	} else {
+		log.Fatal(fileErr.Error())
 	}
 }
 
@@ -141,21 +165,27 @@ func (doc *Document) readDocuments() {
 	}
 }
 
-func (doc *Document) readParagraphs(relativePath string) {
-
+func (doc *Document) close() {
+	os.RemoveAll(doc.tempPath)
 }
 
-func (doc *Document) close() (err error) {
-	return os.RemoveAll(doc.tempPath)
-}
-
-/*func (doc *Document) GetHTML() {
-
-	htmlOut := ""
-
-	for _, pg := range doc.parsedDocument.Xbody.Xparagraphs {
-		for _, subPg := range pg.Xr {
-			htmlOut = htmlOut + fmt.Sprintf("%v", subPg.Xt)
+func (doc *Document) PrintHTML() {
+	bufferPara := ""
+	for _, p := range doc.parsedDocument.Xbody.Xparagraphs {
+		for _, r := range p.paragraph.run {
+			if r.urlId != "" {
+				bufferPara += fmt.Sprintf("<a href=\"%s\">%s</a>", doc.linkRelations[r.urlId], r.text)
+			} else {
+				bufferPara += r.text
+			}
 		}
+
+		if _, exists := htmlElementAliases[doc.styles[p.paragraph.style]]; exists {
+			fmt.Printf(htmlElementAliases[doc.styles[p.paragraph.style]], bufferPara)
+			fmt.Print("\n")
+		} else {
+			fmt.Printf("<p>%s<p>\n", bufferPara)
+		}
+		bufferPara = ""
 	}
-}*/
+}

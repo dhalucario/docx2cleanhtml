@@ -3,19 +3,19 @@ package simpleDocxParser
 import "encoding/xml"
 
 type xmlStyles struct {
-	XMLName xml.Name `xml:"styles"`
+	XMLName       xml.Name        `xml:"styles"`
 	XlatentStyles xmlLatentStyles `xml:"latentStyles"`
-	Xstyles []xmlStyle `xml:"style"`
+	Xstyles       []xmlStyle      `xml:"style"`
 }
 
 type xmlLatentStyles struct {
-	XMLName xml.Name `xml:"latentStyles"`
+	XMLName       xml.Name          `xml:"latentStyles"`
 	XLsdException []xmlLsdException `xml:"lsdException"`
 }
 
 type xmlLsdException struct {
 	XMLName xml.Name `xml:"lsdException"`
-	Xname string `xml:"name,attr"`
+	Xname   string   `xml:"name,attr"`
 	/*
 		XuiPriority int `xml:"uiPriority,attr"`
 		XsemiHidden int `xml:"semiHidden,attr"`
@@ -25,19 +25,18 @@ type xmlLsdException struct {
 }
 
 type xmlStyle struct {
-	XMLName xml.Name `xml:"style"`
-	Xtype string `xml:"type,attr"`
-	XstyleId string `xml:"styleId,attr"`
-	Xname xmlName `xml:"name"`
+	XMLName  xml.Name   `xml:"style"`
+	Xtype    string     `xml:"type,attr"`
+	XstyleId string     `xml:"styleId,attr"`
+	Xname    xmlName    `xml:"name"`
 	XbasedOn xmlBasedOn `xml:"basedOn"`
 }
 type xmlName struct {
 	XMLName xml.Name `xml:"name"`
-	Xval string `xml:"val,attr"`
+	Xval    string   `xml:"val,attr"`
 }
 
 type xmlBasedOn struct {
 	XMLName xml.Name `xml:"basedOn"`
-	Xval string `xml:"val,attr"`
+	Xval    string   `xml:"val,attr"`
 }
-
