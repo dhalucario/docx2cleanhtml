@@ -169,8 +169,9 @@ func (doc *Document) close() {
 	os.RemoveAll(doc.tempPath)
 }
 
-func (doc *Document) PrintHTML() {
+func (doc *Document) HTML() string {
 	bufferPara := ""
+	html := ""
 	for _, p := range doc.parsedDocument.Xbody.Xparagraphs {
 		for _, r := range p.paragraph.run {
 			if r.urlId != "" {
@@ -186,6 +187,9 @@ func (doc *Document) PrintHTML() {
 		} else {
 			fmt.Printf("<p>%s<p>\n", bufferPara)
 		}
+		html += bufferPara
 		bufferPara = ""
 	}
+
+	return html
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"leong/docx2cleanhtml/settingsStorage"
 	"leong/docx2cleanhtml/simpleDocxParser"
 	"log"
@@ -40,6 +41,5 @@ func main() {
 		log.Fatal(err)
 	}
 	doc.ReadRelations()
-	doc.PrintHTML()
-
+	fmt.Print(doc.HTML())
 }
