@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"leong/docx2cleanhtml/settingsStorage"
 	"log"
 	"os"
 	"path"
@@ -16,6 +17,8 @@ import (
 )
 
 type Document struct {
+	pgs *programSettings.ProgramSettings
+
 	originalPath string
 	tempPath     string
 
@@ -32,7 +35,7 @@ var htmlElementAliases = map[string]string{
 	"Heading 4": "<h5>%s</h5>",
 }
 
-func New(file string) (doc Document, err error) {
+func New(file string, pgs *programSettings.ProgramSettings) (doc Document, err error) {
 	doc.styles = make(map[string]string)
 	doc.linkRelations = make(map[string]string)
 
@@ -42,6 +45,7 @@ func New(file string) (doc Document, err error) {
 
 	doc.originalPath = file
 	doc.tempPath = path.Join("/tmp/docx2cleanhtml/", hex.EncodeToString(md5hasher.Sum(nil)))
+	doc.pgs = pgs
 
 	folderErr := os.MkdirAll(doc.tempPath, 0750)
 	zipReader, zipErr := zip.OpenReader(file)
@@ -103,7 +107,7 @@ func (doc *Document) ReadRelations() {
 	doc.readDocuments()
 	doc.readStyles()
 	doc.getLinkRelations()
-	//doc.close()
+	doc.close()
 }
 
 func (doc *Document) readStyles() {
@@ -118,9 +122,7 @@ func (doc *Document) readStyles() {
 			}
 
 			for _, style := range parsedStyles.Xstyles {
-				if style.XstyleId != "" {
-					doc.styles[style.XstyleId] = style.Xname.Xval
-				}
+				doc.styles[style.XstyleId] = style.Xname.Xval
 			}
 		}
 	}
@@ -138,6 +140,7 @@ func (doc *Document) getLinkRelations() {
 			}
 
 			for _, rl := range relationships.Xrelationships {
+				doc.pgs.VerbosePrintf("I've found relationship %s (%s)\n", rl.Xtarget, rl.Xid)
 				doc.linkRelations[rl.Xid] = rl.Xtarget
 			}
 		} else {
@@ -172,22 +175,27 @@ func (doc *Document) close() {
 func (doc *Document) HTML() string {
 	bufferPara := ""
 	html := ""
-	for _, p := range doc.parsedDocument.Xbody.Xparagraphs {
+	for i, p := range doc.parsedDocument.Xbody.Xparagraphs {
 		for _, r := range p.paragraph.run {
 			if r.urlId != "" {
 				bufferPara += fmt.Sprintf("<a href=\"%s\">%s</a>", doc.linkRelations[r.urlId], r.text)
+				doc.pgs.VerbosePrintf("\"%s\" is URL: %s\n", r.text, doc.linkRelations[r.urlId])
 			} else {
 				bufferPara += r.text
 			}
 		}
 
 		if _, exists := htmlElementAliases[doc.styles[p.paragraph.style]]; exists {
-			fmt.Printf(htmlElementAliases[doc.styles[p.paragraph.style]], bufferPara)
-			fmt.Print("\n")
+			html += fmt.Sprintf(htmlElementAliases[doc.styles[p.paragraph.style]], bufferPara)
+			doc.pgs.VerbosePrintf("\"%s\" is of type %s\n", bufferPara, htmlElementAliases[doc.styles[p.paragraph.style]])
 		} else {
-			fmt.Printf("<p>%s<p>\n", bufferPara)
+			html += fmt.Sprintf("<p>%s<p>", bufferPara)
 		}
-		html += bufferPara
+
+		if i < len(doc.parsedDocument.Xbody.Xparagraphs) {
+			html += "\n"
+		}
+
 		bufferPara = ""
 	}
 

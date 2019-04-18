@@ -33,13 +33,31 @@ func main() {
 		},
 	})
 
+	pgs.RegisterCommandLineSetting(programSettings.CommandLineArgument{
+		Short:             "o",
+		Long:              "out",
+		DefaultValue:      "",
+		MultipleArguments: true,
+		MaxArgumentParam:  1,
+		CommandHandler: func(commandLineArgs []string, ps *programSettings.ProgramSettings) {
+			ps.Set("out", true)
+		},
+	})
+
 	args := os.Args[1:len(os.Args)]
 	pgs.ReadCommandLineSettings(args)
 
-	doc, err := simpleDocxParser.New(pgs.Get("in").(string))
+	doc, err := simpleDocxParser.New(pgs.Get("in").(string), &pgs)
 	if err != nil {
 		log.Fatal(err)
 	}
 	doc.ReadRelations()
-	fmt.Print(doc.HTML())
+
+	//TODO: Run as web service
+	if pgs.Get("out") != "" {
+		// TODO: Write to file
+	} else {
+		fmt.Print(doc.HTML())
+	}
+
 }
