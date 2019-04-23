@@ -39,13 +39,20 @@ func New(file string, pgs *programSettings.ProgramSettings) (doc Document, err e
 	doc.styles = make(map[string]string)
 	doc.linkRelations = make(map[string]string)
 
+	tempcounter := pgs.Get("tempcounter").(int)
+
 	md5hasher := md5.New()
 	md5hasher.Write([]byte(strconv.FormatInt(time.Now().Unix(), 10)))
 	md5hasher.Write([]byte(file))
 
+	// To cast interfaces use interface{}.(type)
+	// If you have a basic type like int you can use type(int) to cast it
+
 	doc.originalPath = file
-	doc.tempPath = path.Join("/tmp/docx2cleanhtml/", hex.EncodeToString(md5hasher.Sum(nil)))
+	doc.tempPath = path.Join("/tmp/docx2cleanhtml/", hex.EncodeToString(md5hasher.Sum(nil)) + string(tempcounter))
 	doc.pgs = pgs
+
+	pgs.Set("tempcounter",  + 1)
 
 	folderErr := os.MkdirAll(doc.tempPath, 0750)
 	zipReader, zipErr := zip.OpenReader(file)

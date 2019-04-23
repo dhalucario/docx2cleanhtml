@@ -44,6 +44,9 @@ func main() {
 		},
 	})
 
+	// Used to get unique id's in filenames
+	pgs.Set("tempcounter", 0)
+
 	args := os.Args[1:len(os.Args)]
 	pgs.ReadCommandLineSettings(args)
 

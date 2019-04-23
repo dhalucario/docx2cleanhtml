@@ -1,3 +1,5 @@
 /vendor
 /.idea
 /bin
+*.docx
+*.html

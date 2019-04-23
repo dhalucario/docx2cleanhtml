@@ -9,7 +9,7 @@ Tutorials on how to do so can you find here:
 + [Install GoLang](https://golang.org/doc/install) (OS X: `brew install go` | Fedora: `dnf install golang`)
 + [Install dep](https://github.com/golang/dep) (OS X: `brew install dep` | Fedora: `dnf install dep`)
 
-## Dependencies
+## Dependencies (not needed anymore but good to know)
 
 After setting up GoLang your $GOPATH should point into a subfolder of your workspace.
 For example my $GOPATH points to `/home/leon/workspace/gospace`
