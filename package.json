@@ -1,0 +1,28 @@
+{
+  "name": "docx2cleanhtml",
+  "version": "1.0.0",
+  "description": "Just for minifying JS/CSS",
+  "main": "webpack.conf.js",
+  "scripts": {
+    "dev": "webpack --color --progress --watch --config webpack-dev.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://git.doggoat.de/dhalucario/docx2cleanhtml.git"
+  },
+  "author": "Leon Gruenewald <leon.gruenewald@kreativrudel.de>",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "css-loader": "^2.1.1",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "html-loader": "^0.5.5",
+    "htmllint-loader": "^2.1.4",
+    "node-sass": "^4.11.0",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.1",
+    "webpack-notifier": "^1.7.0"
+  }
+}

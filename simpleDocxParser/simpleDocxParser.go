@@ -47,10 +47,9 @@ func New(file string, pgs *programSettings.ProgramSettings) (doc *Document, err 
 	md5hasher.Write([]byte(file))
 
 	// To cast interfaces use interface{}.(type)
-	// If you have a basic type like int you can use type(int) to cast it
 
 	newDoc.originalPath = file
-	newDoc.tempPath = path.Join("/tmp/docx2cleanhtml/", hex.EncodeToString(md5hasher.Sum(nil))+string(tempcounter))
+	newDoc.tempPath = path.Join("/tmp/docx2cleanhtml/", hex.EncodeToString(md5hasher.Sum(nil))+strconv.Itoa(tempcounter))
 	newDoc.pgs = pgs
 
 	pgs.Set("tempcounter", tempcounter+1)
@@ -89,12 +88,12 @@ func New(file string, pgs *programSettings.ProgramSettings) (doc *Document, err 
 
 		err = ofHandle.Close()
 		if err != nil {
-			return nil, err
+			log.Panic(err)
 		}
 
 		err = fdHandle.Close()
 		if err != nil {
-			return nil, err
+			log.Panic(err)
 		}
 
 	}
@@ -135,8 +134,10 @@ func (doc *Document) ReadRelations() error {
 
 	err = doc.close()
 	if err != nil {
-		return err
+		log.Panic(err)
 	}
+
+	return nil
 }
 
 func (doc *Document) readStyles() error {

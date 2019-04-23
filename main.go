@@ -2,15 +2,20 @@ package main
 
 import (
 	"fmt"
-	"leong/docx2cleanhtml/settingsStorage"
-	"leong/docx2cleanhtml/simpleDocxParser"
 	"log"
 	"os"
+
+	"leong/docx2cleanhtml/settingsStorage"
+	"leong/docx2cleanhtml/simpleDocxParser"
 )
 
 func main() {
 
 	pgs := programSettings.New(nil)
+
+	// Used to get unique id's in filenames. Has to be set for the parser
+	pgs.Set("tempcounter", 0)
+
 	pgs.RegisterCommandLineSetting(programSettings.CommandLineArgument{
 		Short:             "v",
 		Long:              "verbose",
@@ -44,9 +49,6 @@ func main() {
 		},
 	})
 
-	// Used to get unique id's in filenames
-	pgs.Set("tempcounter", 0)
-
 	args := os.Args[1:len(os.Args)]
 	pgs.ReadCommandLineSettings(args)
 
@@ -54,7 +56,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	doc.ReadRelations()
+
+	err = doc.ReadRelations()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	//TODO: Run as web service
 	if pgs.Get("out") != "" {
