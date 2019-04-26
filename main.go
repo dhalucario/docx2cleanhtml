@@ -91,9 +91,10 @@ func main() {
 	if webServerResult == nil {
 		convertSingleFile(&pgs)
 	} else {
-		webServerConfig := webServerResult.(webHandler.WServerSettings)
+		webServerConfig := webServerResult.(*webHandler.WServerSettings)
 		webServerConfig.AutocompleteEmpty()
-		err := (webHandler.NewDocServer(webServerConfig)).Run()
+		docServer := webHandler.NewDocServer(*webServerConfig)
+		err := docServer.Run()
 
 		if err != nil {
 			log.Fatal(err)

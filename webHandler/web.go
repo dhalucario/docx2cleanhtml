@@ -4,10 +4,16 @@ import (
 	"net/http"
 )
 
-type docServer struct {
+type DocServer struct {
 	settings WServerSettings
 	activeSessions map[string]int
+}
 
+type DocumentJob struct {
+	uploadPath string
+	sessionToken string
+	saveDate int64
+	jobState string
 }
 
 type WServerSettings struct {
@@ -24,8 +30,8 @@ func (wsrvSettings *WServerSettings)AutocompleteEmpty() {
 	}
 }
 
-func NewDocServer(srvSettings WServerSettings) docServer {
-	docServer := docServer{
+func NewDocServer(srvSettings WServerSettings) DocServer {
+	docServer := DocServer{
 		settings: srvSettings,
 		activeSessions: make(map[string]int),
 	}
@@ -33,9 +39,12 @@ func NewDocServer(srvSettings WServerSettings) docServer {
 	return docServer
 }
 
-func (dServer *docServer) Run() error {
-	http.HandleFunc("/", dServer.showIndexHandler)
+func (dServer *DocServer) Run() error {
+	fileServer := http.FileServer(http.Dir("public"))
+
+	http.Handle("/", fileServer)
 	http.HandleFunc("/upload", dServer.uploadHandler)
+	http.HandleFunc("/job/*", dServer.jobStatus)
 
 	err := http.ListenAndServe(dServer.settings.Ip + ":" + dServer.settings.Port, nil)
 	if err != nil {
@@ -45,10 +54,22 @@ func (dServer *docServer) Run() error {
 	return nil
 }
 
-func (dServer *docServer) showIndexHandler(w http.ResponseWriter, r *http.Request) {
-	// Just send index.html
+func (dServer *DocServer) uploadHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: Store file upload and return a job. (Job: session Token and Document ID)
+	/* {
+	 *    docId: 0
+	 *    sessionKey: asdf1234
+	 * }
+	 */
 }
 
-func (dServer *docServer) uploadHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Get file and return a job. (Session Token and Document ID)
+func (dServer *DocServer) jobStatus(w http.ResponseWriter, r *http.Request) {
+	// TODO: Return the job status
+	/* {
+	 *    docId: 0
+	 *    jobstate: (processing|success|failed)
+	 *    result: "<p>lotsofhtml</p>"
+	 * }
+	 */
 }
+
