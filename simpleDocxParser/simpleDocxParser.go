@@ -148,7 +148,7 @@ func (doc *Document) readStyles() error {
 	}
 
 	readAllContent, err := ioutil.ReadAll(file)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 
