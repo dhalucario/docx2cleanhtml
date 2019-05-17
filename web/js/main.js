@@ -1,18 +1,23 @@
+const JobNetworkController = require('./JobNetworkHandler');
+const JobDomController = require('./JobDomController');
+
 document.addEventListener('DOMContentLoaded', () => {
     let jobDomController = new JobDomController({
         uploader: "uploader",
         jobList: "status-wrapper"
     });
-    let jobNetworkConroller = new JobNetworkConroller();
+    let jobNetworkController = new JobNetworkController();
 
     jobDomController.initDragDrop((dropFiles) => {
         for (let i = 0; i < dropFiles.length; i++) {
             ((file) => {
                 let statusElement = jobDomController.addJob(file.name);
 
-                jobNetworkConroller.checkAndUploadFile(file).then((session) => {
+                jobNetworkController.checkAndUploadFile(file).then((session) => {
 
-                    jobNetworkConroller.pollJob(session).then((finishedRes)=>{
+                    debugger;
+
+                    jobNetworkController.pollJob(session).then((finishedRes)=>{
                         jobDomController.setJobStatus(statusElement,"Working...", 60)
                     }).catch((err)=>{
                         console.log(err);
@@ -22,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log(err);
                     alert(err);
                 });
-            })(file)
+            })(dropFiles[i])
         }
     }, (err)=>{
         alert("Please only drag files into the drop zone");

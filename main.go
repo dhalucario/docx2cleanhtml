@@ -93,9 +93,12 @@ func main() {
 	} else {
 		webServerConfig := webServerResult.(*webHandler.WServerSettings)
 		webServerConfig.AutocompleteEmpty()
-		docServer := webHandler.NewDocServer(*webServerConfig)
-		err := docServer.Run()
+		docServer, err := webHandler.NewDocServer(*webServerConfig, 100, "", "")
+		if err != nil {
+			log.Fatal(err)
+		}
 
+		err = docServer.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -106,7 +109,7 @@ func main() {
 // Sets empty values to defaults.
 
 func convertSingleFile(pgs *programSettings.ProgramSettings) {
-	doc, err := simpleDocxParser.New(pgs.Get("in").(string), pgs)
+	doc, err := simpleDocxParser.New(pgs.Get("in").(string))
 	if err != nil {
 		log.Fatal(err)
 	}

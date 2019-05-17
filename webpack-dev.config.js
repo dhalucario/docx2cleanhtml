@@ -7,15 +7,26 @@ module.exports = {
     entry: './web/index.js',
 
     module: {
-        rules: [{
-            test: /\.scss$/,
-            use: ExtractTextPlugin.extract({
-                disable: false,
-                allChunks: true,
-                fallback: 'style-loader',
-                use: ['css-loader', 'sass-loader']
-            })
-        },
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env']
+                    }
+                }
+            },
+            {
+                test: /\.scss$/,
+                use: ExtractTextPlugin.extract({
+                    disable: false,
+                    allChunks: true,
+                    fallback: 'style-loader',
+                    use: ['css-loader', 'sass-loader']
+                })
+            },
             {
                 test: /(htm|html)$/,
                 use: [

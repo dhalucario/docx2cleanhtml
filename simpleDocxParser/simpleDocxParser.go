@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"leong/docx2cleanhtml/settingsStorage"
 	"log"
 	"os"
 	"path"
@@ -17,8 +16,6 @@ import (
 )
 
 type Document struct {
-	pgs *programSettings.ProgramSettings
-
 	originalPath string
 	tempPath     string
 
@@ -35,24 +32,18 @@ var htmlElementAliases = map[string]string{
 	"Heading 4": "<h5>%s</h5>",
 }
 
-func New(file string, pgs *programSettings.ProgramSettings) (doc *Document, err error) {
+func New(file string) (doc *Document, err error) {
 	newDoc := Document{}
 	newDoc.styles = make(map[string]string)
 	newDoc.linkRelations = make(map[string]string)
-
-	tempcounter := pgs.Get("tempcounter").(int)
 
 	md5hasher := md5.New()
 	md5hasher.Write([]byte(strconv.FormatInt(time.Now().Unix(), 10)))
 	md5hasher.Write([]byte(file))
 
-	// To cast interfaces use interface{}.(type)
-
 	newDoc.originalPath = file
-	newDoc.tempPath = path.Join("/tmp/docx2cleanhtml/", hex.EncodeToString(md5hasher.Sum(nil))+strconv.Itoa(tempcounter))
-	newDoc.pgs = pgs
+	newDoc.tempPath = path.Join("/tmp/docx2cleanhtml/", hex.EncodeToString(md5hasher.Sum(nil)))
 
-	pgs.Set("tempcounter", tempcounter+1)
 
 	folderErr := os.MkdirAll(newDoc.tempPath, 0750)
 	zipReader, zipErr := zip.OpenReader(file)
@@ -184,7 +175,6 @@ func (doc *Document) getLinkRelations() error {
 	}
 
 	for _, rl := range relationships.Xrelationships {
-		doc.pgs.VerbosePrintf("I've found relationship %s (%s)\n", rl.Xtarget, rl.Xid)
 		doc.linkRelations[rl.Xid] = rl.Xtarget
 	}
 
@@ -223,7 +213,6 @@ func (doc *Document) HTML() string {
 		for _, r := range p.paragraph.run {
 			if r.urlId != "" {
 				bufferPara += fmt.Sprintf("<a href=\"%s\">%s</a>", doc.linkRelations[r.urlId], r.text)
-				doc.pgs.VerbosePrintf("\"%s\" is URL: %s\n", r.text, doc.linkRelations[r.urlId])
 			} else {
 				bufferPara += r.text
 			}
@@ -231,7 +220,6 @@ func (doc *Document) HTML() string {
 
 		if _, exists := htmlElementAliases[doc.styles[p.paragraph.style]]; exists {
 			html += fmt.Sprintf(htmlElementAliases[doc.styles[p.paragraph.style]], bufferPara)
-			doc.pgs.VerbosePrintf("\"%s\" is of type %s\n", bufferPara, htmlElementAliases[doc.styles[p.paragraph.style]])
 		} else {
 			html += fmt.Sprintf("<p>%s<p>", bufferPara)
 		}

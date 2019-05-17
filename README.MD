@@ -9,15 +9,22 @@ Tutorials on how to do so can you find here:
 + [Install GoLang](https://golang.org/doc/install) (OS X: `brew install go` | Fedora: `dnf install golang`)
 + [Install dep](https://github.com/golang/dep) (OS X: `brew install dep` | Fedora: `dnf install dep`)
 
-## Dependencies (not needed anymore but good to know)
+## ~~Dependencies (dep)~~
 
-After setting up GoLang your $GOPATH should point into a subfolder of your workspace.
-For example my $GOPATH points to `/home/leon/workspace/gospace`
+~~After setting up GoLang your $GOPATH should point into a subfolder of your workspace.
+For example my $GOPATH points to `/home/leon/workspace/gospace`~~
 
-The project should be located in `$GOPATH/src/leong/docx2cleanhtml`.
-GoLang establishes this structure for dependency management.
+~~The project should be located in `$GOPATH/src/leong/docx2cleanhtml`.
+GoLang establishes this structure for dependency management.~~
 
-After that you can run `dep ensure` in the root of the project folder to install the dependencies.
+~~After that you can run `dep ensure` in the root of the project folder to install the dependencies.~~
+
+"Outdated"
+
+## Dependencies (vgo)
+
+Use `go mod vendor` to install the dependencies into your vendor folder.
+In case you wanna add dependencies you can use`go mod edit -require <github.com/user/libary>`
 
 ## Building
 

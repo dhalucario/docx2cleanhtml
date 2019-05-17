@@ -1,30 +1,26 @@
-class JobNetworkConroller {
-
-
-    constructor(baseurl) {
-        if (baseurl && baseurl !== "") {
-            this.baseurl = baseurl
-        } else {
-            this.baseurl = window.location.protocol + "://" + window.location.hostname
-        }
-    }
+class JobNetworkController {
 
     checkAndUploadFile(file) {
         return new Promise((resolve, reject) => {
             let session = {
-                id: '',
-                docId: ''
+                sessionKey: '',
+                jobId: ''
             };
 
-            this.sendSimpleRequest('/upload').then((res) => {
+            this.uploadFile('/upload', file).then((res) => {
                 if (res.error) {
                     reject(res.error)
                 } else {
-                    session.id = res.id;
-                    session.docId = res.docId;
-                    resolve(session);
+                    if (res.hasOwnProperty('jobId') && res.hasOwnProperty('sessionKey')) {
+                        session.sessionKey = res.sessionKey;
+                        session.jobId = res.jobId;
+                        resolve(session);
+                    } else {
+                        reject("Invalid response");
+                    }
                 }
             }).catch((err) => {
+                debugger;
                 reject(err);
             });
         });
@@ -34,16 +30,13 @@ class JobNetworkConroller {
         return new Promise((resolve, reject) => {
             let req = new XMLHttpRequest();
 
-            req.addEventListener('load', (res) => {
-                if (req.status === 200) {
-                    if (req.responseType === 'json') {
-                        try {
-                            resolve(JSON.parse(req.responseText))
-                        } catch (err) {
-                            reject(err)
-                        }
-                    } else {
-                        resolve(req.responseText);
+            req.addEventListener('load', () => {
+                debugger;
+                if (req.status >= 200 && req.status < 300) {
+                    try {
+                        resolve(JSON.parse(req.responseText))
+                    } catch (err) {
+                        resolve(req.responseText)
                     }
                 } else {
                     reject('Status: ' + req.status)
@@ -54,27 +47,53 @@ class JobNetworkConroller {
                 reject(err);
             });
 
-            // TODO: Get key and docid from server.
-            resolve({key: "asdf1234", docId: 1});
-            // req.open('POST', this.baseurl + path, true);
-            // req.send(body);
+            req.open('POST', path, true);
+            req.send(body);
+        });
+    }
+
+    uploadFile(path, file) {
+        return new Promise((resolve, reject) => {
+            let req = new XMLHttpRequest();
+            let formData = new FormData();
+            formData.append('doc_file', file);
+
+            req.addEventListener('load', () => {
+                debugger;
+                if (req.status >= 200 && req.status < 300) {
+                    try {
+                        resolve(JSON.parse(req.responseText))
+                    } catch (err) {
+                        resolve(req.responseText)
+                    }
+                } else {
+                    reject('Status: ' + req.status)
+                }
+            });
+
+            req.addEventListener('error', (err) => {
+                reject(err);
+            });
+
+            req.open('POST', path, true);
+            req.send(formData);
         });
     }
 
     pollJob(session) {
-        return new Promise((resolve, reject)=>{
-            this.sendSimpleRequest('/job/' + session.docId).then((res) => {
+        return new Promise((resolve, reject) => {
+            this.sendSimpleRequest('/job/status', JSON.stringify(session)).then((res) => {
                 if (res.err) {
                     console.log(res.err);
                 } else {
                     if (res.hasOwnProperty('jobstate') && typeof res.jobstate == 'string') {
                         switch (res.jobstate) {
                             case 'success':
-                                    resolve(res);
+                                resolve(res);
                                 break;
                             case 'processing':
                                 setTimeout(() => {
-                                    this.pollJob(session).then((finished)=>{
+                                    this.pollJob(session).then((finished) => {
                                         resolve(finished)
                                     }).catch((err) => {
                                         reject(err)
@@ -86,7 +105,6 @@ class JobNetworkConroller {
                                 break;
                         }
                     }
-
                 }
             }).catch((err) => {
                 console.log(err)
@@ -95,3 +113,5 @@ class JobNetworkConroller {
     }
 
 }
+
+module.exports = JobNetworkController;
