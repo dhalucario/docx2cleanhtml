@@ -35,13 +35,9 @@ func NewJobController(maxJobs int) (*JobController, error) {
 	}
 }
 
-func (jc *JobController) AddJobContent(filepath string) (*DocumentJob, error) {
-	freeJob, err := jc.InitFreeJob()
-	if err != nil {
-		return nil, err
-	}
-
-	return &(jc.jobs[freeJob]), nil
+func (jc *JobController) AddJobContent(job int, filepath string) (*DocumentJob, error) {
+	jc.jobs[job].SetPath(filepath)
+	return &(jc.jobs[job]), nil
 }
 
 func (jc *JobController) InitFreeJob() (int, error) {
@@ -53,6 +49,7 @@ func (jc *JobController) InitFreeJob() (int, error) {
 
 	if freeJob != -1 {
 		jc.counter.Set(freeJob)
+		jc.jobs[freeJob].Clear()
 		jc.jobs[freeJob].InitUUID()
 		return freeJob, nil
 	}
@@ -61,6 +58,7 @@ func (jc *JobController) InitFreeJob() (int, error) {
 
 	if freeJob != -1 {
 		jc.counter.Set(freeJob)
+		jc.jobs[freeJob].Clear()
 		jc.jobs[freeJob].InitUUID()
 		return freeJob, nil
 	} else {

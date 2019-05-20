@@ -26,16 +26,11 @@ class JobDomController {
                 e.stopPropagation();
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'copy';
-                console.log("Hover");
-                console.log(e.dataTransfer);
             });
 
             this.uploader.addEventListener('drop', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-
-                console.log("Drop");
-                console.log(e.dataTransfer);
 
                 let dropFiles = e.dataTransfer.files;
 
@@ -62,11 +57,11 @@ class JobDomController {
                     '<div class="container">'+
                     '    <div class="row">'+
                     '        <div class="col-12 col-md-4 pr-md-0">'+
-                    '            <h3>document.docx</h3>'+
+                    '            <h3>' + filename + '</h3>'+
                     '        </div>'+
                     '    </div>'+
                     '    <div class="row">'+
-                    '        <div class="col-12 col-md-10 pl-md-0">'+
+                    '        <div class="col-12 col-md-10">'+
                     '            <div class="progress-wrapper">'+
                     '                <progress class="file-progress" value="0" max="100"></progress>'+
                     '            </div>'+
@@ -98,16 +93,27 @@ class JobDomController {
         }
     }
 
-    setJobElementDocID(elem, id) {
-        return new Promise((resolve, reject) => {
-            if (elem && elem.hasOwnProperty("nodeType")) {
-                elem.dataset.docId = id;
-                resolve();
-            } else {
-                reject();
-            }
+    showResult(job, result) {
+        let elem;
 
-        });
+        if (job instanceof HTMLElement) {
+            elem = job
+        } else if (typeof job === 'string') {
+            if (this.jobList) {
+                let jobQuery = this.jobList.querySelectorAll('div[data-doc-id="' + job + '"]');
+                if (jobQuery && jobQuery.length === 1) {
+                    elem = jobQuery[0];
+                }
+            }
+        }
+
+        if (elem) {
+            let ouputArea = elem.querySelectorAll('.output-area');
+            if (ouputArea && ouputArea.length > 0) {
+                ouputArea[0].value = result;
+                ouputArea[0].classList.add('show');
+            }
+        }
     }
 
     setJobStatus(job, statusText, progress) {
@@ -125,13 +131,13 @@ class JobDomController {
         }
         if (elem) {
             let progressBar = elem.querySelectorAll('progress');
-            if (progressBar && progressBar.length < 0) {
+            if (progressBar && progressBar.length > 0) {
                 progressBar[0].value = progress;
             }
 
-            let statusElem = elem.querySelectorAll('.progress-status')
-            if (statusElem && statusElem.length < 0) {
-                statusElem[0].value = statusText;
+            let statusElem = elem.querySelectorAll('.progress-status');
+            if (statusElem && statusElem.length > 0) {
+                statusElem[0].innerHTML = statusText;
             }
         }
     }

@@ -93,14 +93,14 @@ func main() {
 	} else {
 		webServerConfig := webServerResult.(*webHandler.WServerSettings)
 		webServerConfig.AutocompleteEmpty()
-		docServer, err := webHandler.NewDocServer(*webServerConfig, 100, "", "")
+		docServer, err := webHandler.NewDocServer(*webServerConfig, 5, "", "")
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		err = docServer.Run()
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 	}
 

@@ -20,7 +20,6 @@ class JobNetworkController {
                     }
                 }
             }).catch((err) => {
-                debugger;
                 reject(err);
             });
         });
@@ -31,7 +30,6 @@ class JobNetworkController {
             let req = new XMLHttpRequest();
 
             req.addEventListener('load', () => {
-                debugger;
                 if (req.status >= 200 && req.status < 300) {
                     try {
                         resolve(JSON.parse(req.responseText))
@@ -59,7 +57,6 @@ class JobNetworkController {
             formData.append('doc_file', file);
 
             req.addEventListener('load', () => {
-                debugger;
                 if (req.status >= 200 && req.status < 300) {
                     try {
                         resolve(JSON.parse(req.responseText))
@@ -86,12 +83,13 @@ class JobNetworkController {
                 if (res.err) {
                     console.log(res.err);
                 } else {
-                    if (res.hasOwnProperty('jobstate') && typeof res.jobstate == 'string') {
-                        switch (res.jobstate) {
-                            case 'success':
+                    if (res.hasOwnProperty('jobState')) {
+                        switch (res.jobState) {
+                            case '2':
+                                res.sessionKey = session.sessionKey;
                                 resolve(res);
                                 break;
-                            case 'processing':
+                            case '1':
                                 setTimeout(() => {
                                     this.pollJob(session).then((finished) => {
                                         resolve(finished)

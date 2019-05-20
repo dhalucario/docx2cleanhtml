@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"runtime/debug"
 	"strconv"
 )
 
@@ -39,25 +40,24 @@ func (wsrvSettings *WServerSettings) AutocompleteEmpty() {
 }
 
 func NewDocServer(srvSettings WServerSettings, cacheDocCount int, inputPath string ,outputPath string) (*DocServer, error) {
-	var uploadFilesFolder string
 	currentDirectory, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	var uploadFilesFolder string
+	var downloadFilesPath string
 
 	if outputPath == "" {
-		if err != nil {
-			panic(err)
-		}
 		uploadFilesFolder = path.Join(currentDirectory, "uploads")
 	} else {
 		uploadFilesFolder = outputPath
 	}
 
 	if inputPath == "" {
-		if err != nil {
-			panic(err)
-		}
-		uploadFilesFolder = path.Join(currentDirectory, "public/output/")
+		downloadFilesPath = path.Join(currentDirectory, "public/output/")
 	} else {
-		uploadFilesFolder = inputPath
+		downloadFilesPath = inputPath
 	}
 
 	docJobController, err := NewJobController(cacheDocCount)
@@ -70,6 +70,7 @@ func NewDocServer(srvSettings WServerSettings, cacheDocCount int, inputPath stri
 		activeSessions:  make(map[string]int),
 		jobController:   *docJobController,
 		uploadFilesPath: uploadFilesFolder,
+		downloadFilesPath: downloadFilesPath,
 	}
 
 	return &docServer, nil
@@ -96,6 +97,8 @@ func (dServer *DocServer) uploadHandler(w http.ResponseWriter, r *http.Request) 
 	currentJobID, err := dServer.jobController.InitFreeJob()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
 		return
 	}
 
@@ -103,46 +106,53 @@ func (dServer *DocServer) uploadHandler(w http.ResponseWriter, r *http.Request) 
 
 	saveFile, err := os.Create(savePath)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
 	}
 
 	requestFile, _, err := r.FormFile("doc_file")
 	if err != nil {
-		jsonErr, webErr := json.Marshal(map[string]string{
-			"err": err.Error(),
-		})
-		if webErr != nil {
-			panic(err)
-		}
-
-		_, err = w.Write([]byte(jsonErr))
-		if err != nil {
-			panic(err)
-		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
 	}
 
 	_, err = io.Copy(saveFile, requestFile)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
 	}
 
-	currentJob, err := dServer.jobController.AddJobContent(savePath)
+	currentJob, err := dServer.jobController.AddJobContent(currentJobID, savePath)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		return
 	}
 
-	jsonJob, err := json.Marshal(map[string]string{
-		"jobId":      strconv.Itoa(currentJobID),
+	jsonJob, err := json.Marshal(map[string]interface{}{
+		"jobId":      currentJobID,
 		"sessionKey": currentJob.sessionToken,
 	})
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(jsonJob))
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
 	}
 
 	dServer.processFile(currentJobID)
@@ -151,27 +161,32 @@ func (dServer *DocServer) uploadHandler(w http.ResponseWriter, r *http.Request) 
 
 func (dServer *DocServer) jobStatus(w http.ResponseWriter, r *http.Request) {
 
-	// TODO: Return the job status
-	/* {
-	 *    jobstate: (processing|success|failed)
-	 *    result: "<p>lotsofhtml</p>"
-	 * }
-	 */
-
 	w.Header().Set("Content-Type", "application/json")
 
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
 	}
 
 	var rq StatusRequest
 	err = json.Unmarshal(b, &rq)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
 	}
 
 	jobStatus, err := dServer.jobController.StatusWithSession(rq.JobId, rq.JobSession)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
+	}
 
 	statusResponse := map[string]string{
 		"jobState": strconv.Itoa(int(jobStatus)),
@@ -179,9 +194,12 @@ func (dServer *DocServer) jobStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if jobStatus == JobDone {
-		htmlSaveFile, err := os.Open(path.Join(dServer.downloadFilesPath))
+		htmlSaveFile, err := os.OpenFile(path.Join(dServer.downloadFilesPath, rq.JobSession + ".html"), os.O_RDONLY, 0775)
 		if err != nil {
-			panic(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Println(err)
+			debug.PrintStack()
+			return
 		}
 
 		htmlResult, err := ioutil.ReadAll(htmlSaveFile)
@@ -190,25 +208,35 @@ func (dServer *DocServer) jobStatus(w http.ResponseWriter, r *http.Request) {
 
 	jsonStatus, err := json.Marshal(statusResponse)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte(jsonStatus))
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		debug.PrintStack()
+		return
 	}
 }
 
 func (dServer *DocServer) processFile(jobId int) {
-	savePath := path.Join(dServer.uploadFilesPath, dServer.jobController.jobs[jobId].sessionToken) + ".html"
-	saveFile, err := os.Create(savePath)
+	savePath := path.Join(dServer.downloadFilesPath, dServer.jobController.jobs[jobId].sessionToken) + ".html"
+	saveFile, err := os.OpenFile(savePath, os.O_RDWR|os.O_CREATE, 0775)
 	if err != nil {
 		fmt.Println(err.Error())
 		dServer.jobController.jobs[jobId].jobState = JobError
 	}
 
 	htmlContent, err := dServer.jobController.jobs[jobId].ProcessFile()
+	if err != nil {
+		fmt.Println(err.Error())
+		dServer.jobController.jobs[jobId].jobState = JobError
+	}
 
 	_, err = saveFile.Write([]byte(htmlContent))
 	if err != nil {
