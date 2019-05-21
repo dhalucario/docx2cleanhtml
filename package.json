@@ -11,7 +11,7 @@
     "url": "http://git.doggoat.de/dhalucario/docx2cleanhtml.git"
   },
   "author": "Leon Gruenewald <leon.gruenewald@kreativrudel.de>",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@babel/core": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
