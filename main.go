@@ -5,6 +5,7 @@ import (
 	"leong/docx2cleanhtml/simpleDocxParser"
 	"log"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	"leong/docx2cleanhtml/settingsStorage"
@@ -75,6 +76,22 @@ func main() {
 					wsrvConfig.Ip = splitSetting[1]
 				case "port":
 					wsrvConfig.Port = splitSetting[1]
+				}
+			}
+
+			err := os.Mkdir("./uploads", 775)
+			if err != nil {
+				if !os.IsExist(err) {
+					fmt.Println(err)
+					debug.PrintStack()
+				}
+			}
+
+			err = os.MkdirAll("./public/output", 775)
+			if err != nil {
+				if !os.IsExist(err) {
+					fmt.Println(err)
+					debug.PrintStack()
 				}
 			}
 

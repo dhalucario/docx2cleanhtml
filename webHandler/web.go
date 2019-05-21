@@ -104,7 +104,7 @@ func (dServer *DocServer) uploadHandler(w http.ResponseWriter, r *http.Request) 
 
 	savePath := path.Join(dServer.uploadFilesPath, dServer.jobController.jobs[currentJobID].sessionToken) + ".docx"
 
-	saveFile, err := os.Create(savePath)
+	saveFile, err := os.OpenFile(savePath, os.O_CREATE|os.O_RDWR, 0775)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		fmt.Println(err)
