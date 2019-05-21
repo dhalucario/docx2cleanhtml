@@ -1,5 +1,17 @@
-/vendor
+# IDE
 /.idea
-/bin
+/.vscode
+
+# Packages
+/vendor
+/node_modules
+
+# Compile time files
+/bin/public/output
+/bin/public/bundle.js
+/bin/public/bundle.css
+/bin/uploads
+/bin/docx2clearhtml*
+
+# Test Files
 *.docx
-node_modules
