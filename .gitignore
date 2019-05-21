@@ -1,5 +1,10 @@
 /vendor
 /.idea
-/bin
+/bin/public/output
+/bin/public/bundle.js
+/bin/public/bundle.css
+/bin/uploads
+/bin/docx2clearhtml*
+
 *.docx
 node_modules
